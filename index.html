@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8" />
+  <title>Räim Ruudus</title>
+  <script src="https://unpkg.com/vue@3"></script>
+  <script src="https://unpkg.com/vue-router@4"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/x-icon" href="icon1.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body class="bg-white text-gray-800">
+  <div id="app" class="flex flex-col min-h-screen">
+    <header-comp></header-comp>
+    <router-view class="flex-grow"></router-view>
+    <footer-comp></footer-comp>
+  </div>
+
+  <script>
+    const Home = {
+      template: `
+    <main class='w-full px-8 py-6 max-w-6xl mx-auto'>
+      <h1 class='text-2xl font-bold mb-4'> Tere tulemast Räim Ruudus lehele!</h1>
+      <img src='uudis.jpg' alt='Üritus' class='rounded-xl mb-4 w-[400px]'/>
+      <p class='mb-4'>Räim ruudust kassast on võimalik osta ka Naissaare sõjamuuseumi pileti sularahas. 😉 Kohtumiseni Naissaarel!</p>
+    </main>
+      `
+    }
+
+    const Uudised = {
+  template: `
+    <main class='w-full px-8 py-6 max-w-6xl mx-auto'>
+      <h1 class='text-2xl font-bold mb-4'>Uudised ja Üritused</h1>
+      <div class='space-y-4'>
+        <div class='bg-gray-100 p-4 rounded' v-for="(event, index) in events" :key="index">
+          <h2 class='font-bold text-lg'>{{ event.title }}</h2>
+          <p>{{ event.shortDescription }}</p>
+          <button v-if="!event.isExpanded" @click="toggleDescription(index)" class="text-blue-500 hover:underline">Loe edasi</button>
+          <p v-if="event.isExpanded">{{ event.fullDescription }}</p>
+        </div>
+      </div>
+    </main>
+  `,
+  data() {
+    return {
+      events: [
+        {
+          title: 'Tulemas: Kevadkontsert',
+          shortDescription: '20. aprill 2025 – Tule naudi head muusikat ja jäätist!',
+          fullDescription: 'Kevadkontsert toimub 20. aprillil 2025 ja kutsub kõiki nautima head muusikat, meeldivat atmosfääri ja maitsvaid jäätiseid! Üritus algab kell 18:00 ja kestab kuni hilisõhtuni. Meil on külalisesinejaid ning mitmeid tegevusi, mis pakuvad rõõmu igas vanuses külastajatele.',
+          isExpanded: false
+        },
+        {
+          title: 'Toimus: Talvefestival',
+          shortDescription: '15. detsember 2024 – Suur tänu kõigile osalejatele!',
+          fullDescription: 'Talvefestival toimus 15. detsembril 2024 ja oli tõeline talvine pidu! Aitäh kõigile, kes osalesid ja aitasid meil luua sellise toreda atmosfääri. Üritusel oli palju põnevaid tegevusi ja töötoad, kus igas vanuses inimesed said nautida talvist meeleolu ja aktiivseid tegemisi.',
+          isExpanded: false
+        }
+      ]
+    };
+  },
+  methods: {
+    toggleDescription(index) {
+      this.events[index].isExpanded = !this.events[index].isExpanded;
+    }
+  }
+};
+
+
+    const Merch = {
+      template: `
+        <main class='w-full px-8 py-6 max-w-6xl mx-auto'>
+          <h1 class='text-2xl font-bold mb-4'>Merch</h1>
+          <p>Meie eksklusiivne merch on kohal! T-särgid, mütsid, kruusid ja palju muud. Ostusoovi korral võtta ühendust 
+            e-maili teel.</p>
+          <img src='merch.webp' alt='Merch' class='rounded-xl mb-4 w-full max-w-md'/>
+          <h3 class='text-xl font-bold mb-4'>T-Särk - Hind 35€</h3>
+        </main>
+      `
+    }
+
+    const Rent = {
+  template: `
+    <main class='w-full px-8 py-6 max-w-6xl mx-auto'>
+      <h1 class='text-3xl font-bold mb-6 text-center'>Jäätisemasina rent</h1>
+      <form @submit.prevent="onSubmit" class="space-y-4">
+        
+        <!-- Nimi -->
+        <div>
+          <label for="name" class="block font-semibold">Nimi:</label>
+          <input type="text" name="name" id="name" required v-model="formData.name" class="w-full p-2 border rounded">
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="block font-semibold">Email:</label>
+          <input type="email" name="email" id="email" required v-model="formData.email" class="w-full p-2 border rounded">
+        </div>
+
+        <!-- Alguskuupäev -->
+        <div>
+          <label for="start_date" class="block font-semibold">Alguskuupäev:</label>
+          <input type="date" name="start_date" id="start_date" required v-model="formData.start_date" :min="today" class="w-full p-2 border rounded cursor-pointer">
+        </div>
+
+        <!-- Lõppkuupäev -->
+        <div>
+          <label for="end_date" class="block font-semibold">Lõppkuupäev:</label>
+          <input type="date" name="end_date" id="end_date" required v-model="formData.end_date" :min="formData.start_date || today" class="w-full p-2 border rounded cursor-pointer">
+        </div>
+
+        <!-- Algusaeg -->
+        <div>
+          <label for="start_time" class="block font-semibold">Algusaeg:</label>
+          <select id="start_time" required v-model="formData.start_time" name="start_time" class="w-full p-2 border rounded cursor-pointer">
+            <option disabled value="">Vali aeg</option>
+            <option v-for="time in timeOptions" :key="'start-' + time" :value="time">{{ time }}</option>
+          </select>
+        </div>
+
+        <!-- Lõppaeg -->
+        <div>
+          <label for="end_time" class="block font-semibold">Lõppaeg:</label>
+          <select id="end_time" required v-model="formData.end_time" name="end_time" class="w-full p-2 border rounded cursor-pointer">
+            <option disabled value="">Vali aeg</option>
+            <option v-for="time in timeOptions" :key="'end-' + time" :value="time">{{ time }}</option>
+          </select>
+        </div>
+
+        <!-- Transport -->
+        <div class="flex items-center">
+          <input type="checkbox" name="transport" id="transport" v-model="formData.transport" class="mr-2">
+          <label for="transport" class="font-semibold">Soovin transporti</label>
+        </div>
+
+        <!-- Lisainfo -->
+        <div>
+          <label for="details" class="block font-semibold">Lisainfo:</label>
+          <textarea name="details" id="details" v-model="formData.details" class="w-full p-2 border rounded resize-none" :style="{ 'height': textareaHeight + 'px' }"></textarea>
+        </div>
+
+        <!-- Submit button -->
+        <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">Saada</button>
+      </form>
+
+      <!-- Success message -->
+      <div v-if="formSubmitted" class="text-green-500 text-center mt-4">
+        Teie broneering on edukalt saadetud!
+      </div>
+    </main>
+  `,
+  data() {
+    return {
+      formData: {
+        name: '',
+        email: '',
+        start_date: '',
+        end_date: '',
+        start_time: '',
+        end_time: '',
+        transport: false,
+        details: ''
+      },
+      formSubmitted: false,
+      today: new Date().toISOString().split('T')[0],
+      timeOptions: [],
+      textareaHeight: 100  // Algne kõrgus textarea jaoks
+    };
+  },
+  created() {
+    this.timeOptions = this.generateTimeOptions();
+  },
+  methods: {
+    generateTimeOptions() {
+      const options = [];
+      const startHour = 8;
+      const endHour = 21;
+
+      for (let h = startHour; h <= endHour; h++) {
+        for (let m = 0; m < 60; m += 15) {
+          const hh = String(h).padStart(2, '0');
+          const mm = String(m).padStart(2, '00');
+          options.push(`${hh}:${mm}`);
+        }
+      }
+
+      return options;
+    },
+    handleTextareaInput(event) {
+      this.textareaHeight = event.target.scrollHeight;
+    },
+        async onSubmit() {
+      emailjs.init("ljSj1so40G933f40z"); // ← sinu EmailJS kasutaja ID
+
+      const formPayload = {
+        name: this.formData.name,
+        email: this.formData.email,
+        start_date: this.formData.start_date,
+        end_date: this.formData.end_date,
+        start_time: this.formData.start_time,
+        end_time: this.formData.end_time,
+        transport: this.formData.transport ? "Jah" : "Ei",
+        details: this.formData.details
+      };
+
+      try {
+        // Saada omanikule
+        await emailjs.send('service_xh9l33l', 'template_7zdwkd6', formPayload);
+        console.log('Omanikule saadetud');
+
+        // Saada kliendile
+        await emailjs.send('service_xh9l33l', 'template_immkrtu', formPayload);
+        console.log('Kliendile saadetud');
+
+        this.formSubmitted = true;
+      } catch (error) {
+        console.error('Emaili saatmine ebaõnnestus', error);
+        this.formSubmitted = false;
+      }
+    }
+  }
+};
+
+
+
+const Galerii = {
+  template: `
+    <main class='w-full px-8 py-6 max-w-6xl mx-auto'>
+      <h1 class='text-2xl font-bold mb-4'>Galerii</h1>
+      <div class='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
+        <div class='text-center' v-for="(img, index) in images" :key="index">
+          <img 
+            :src="img.src" 
+            :alt="img.alt" 
+            class='rounded-xl w-full h-64 object-cover cursor-pointer' 
+            @click="openImage(index)" />
+          <p class='mt-2 text-gray-700 font-medium'>{{ img.alt }}</p>
+        </div>
+      </div>
+
+      <!-- Large image view -->
+      <div v-if="isImageOpen" class="image-fullscreen" @click="closeImage" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
+        <div class="overlay"></div>
+        <img :src="images[currentImageIndex].src" :alt="images[currentImageIndex].alt" class="image-zoomed" @click.stop />
+        <button class="prev-button" @click.stop="prevImage">←</button>
+        <button class="next-button" @click.stop="nextImage">→</button>
+      </div>
+    </main>
+  `,
+  data() {
+    return {
+      images: [
+        { src: 'pitsid.jpg', alt: 'Kaunid pitsid' },
+        { src: 'söök.jpg', alt: 'Maitsev söök' },
+        { src: 'kalad.jpg', alt: 'Värsked kalad' }
+      ],
+      isImageOpen: false,
+      currentImageIndex: 0,
+      autoSlideInterval: null,
+      touchStartX: 0,
+    };
+  },
+  methods: {
+    openImage(index) {
+      this.currentImageIndex = index;
+      this.isImageOpen = true;
+      window.addEventListener('keydown', this.handleKeydown);
+      this.startAutoSlide();
+    },
+    closeImage() {
+      this.isImageOpen = false;
+      window.removeEventListener('keydown', this.handleKeydown);
+      this.stopAutoSlide();
+    },
+    prevImage() {
+      this.currentImageIndex = (this.currentImageIndex > 0) ? this.currentImageIndex - 1 : this.images.length - 1;
+    },
+    nextImage() {
+      this.currentImageIndex = (this.currentImageIndex < this.images.length - 1) ? this.currentImageIndex + 1 : 0;
+    },
+    handleKeydown(event) {
+      if (event.key === 'ArrowLeft') {
+        this.prevImage();
+      } else if (event.key === 'ArrowRight') {
+        this.nextImage();
+      } else if (event.key === 'Escape') {
+        this.closeImage();
+      }
+    },
+    startAutoSlide() {
+      this.autoSlideInterval = setInterval(() => {
+        this.nextImage();
+      }, 5000); // 5 sekundit
+    },
+    stopAutoSlide() {
+      clearInterval(this.autoSlideInterval);
+      this.autoSlideInterval = null;
+    },
+    handleTouchStart(e) {
+      this.touchStartX = e.changedTouches[0].clientX;
+    },
+    handleTouchEnd(e) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchEndX - this.touchStartX;
+
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          this.prevImage();
+        } else {
+          this.nextImage();
+        }
+      }
+    }
+  },
+  beforeUnmount() {
+  window.removeEventListener('keydown', this.handleKeydown);
+  this.stopAutoSlide();
+}
+};
+
+
+
+const Kontakt = {
+  template: `
+    <main class='w-full px-8 py-6 max-w-6xl mx-auto text-center'>
+      <h1 class='text-3xl font-bold mb-6'>Võta meiega ühendust</h1>
+
+      <!-- Kontaktinfo -->
+      <div class="bg-gray-100 p-6 rounded-lg shadow-md max-w-lg mx-auto">
+        <p class="text-lg font-semibold mb-2">Meie kontaktandmed</p>
+        <p class="text-gray-700">
+          <strong>Email:</strong> 
+          <a href="mailto:info@jaatisrent.ee" class="text-blue-600 hover:underline">
+            info@jaatisrent.ee
+          </a>
+        </p>
+        <p class="text-gray-700">
+          <strong>Telefon:</strong> 
+          <a href="tel:+3725551234" class="text-blue-600 hover:underline">
+            +372 5551 234
+          </a>
+        </p>
+      </div>
+    </main>
+  `
+};
+
+
+
+const HeaderComp = {
+      template: `
+        <header class='bg-white shadow-md'>
+          <div class="max-w-screen-xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+              <router-link to='/'><img src='logo.jpg' alt='Logo' class='h-12' /></router-link>
+              <nav class='flex gap-6 text-lg flex-wrap justify-center'>
+                <router-link to='/'>Avaleht</router-link>
+                <router-link to='/uudised'>Uudised</router-link>
+                <router-link to='/merch'>Merch</router-link>
+                <router-link to='/rent'>Jäätisemasina rent</router-link>
+                <router-link to='/galerii'>Galerii</router-link>
+                <router-link to='/kontakt'>Kontakt</router-link>
+              </nav>
+            </div>
+          </div>
+        </header>
+      `
+    };
+
+    const FooterComp = {
+      template: `
+          <footer class='bg-gray-100 py-8'>
+    <div class="max-w-screen-xl mx-auto px-6 py-4">
+      <div class='flex flex-col md:flex-row justify-between gap-6'>
+        <div class='space-y-2 text-left'>
+          <div class='space-x-4'>
+            <a href='https://instagram.com/raimruudus' target='_blank' class='text-gray-700 hover:text-blue-600'>
+              <i class="fab fa-instagram fa-2x"></i> Instagram
+            </a>
+            <a href='https://www.facebook.com/raimruudus' target='_blank' class='text-gray-700 hover:text-blue-600'>
+              <i class="fab fa-facebook fa-2x"></i> Facebook
+            </a>
+          </div>
+          <p>Männiku tee 9, Lõunaküla / Storbyn, 74022 Harju maakond</p>
+          <p>Email: <a href='mailto:raimruudus@gmail.com'>raimruudus@gmail.com</a></p>
+          <p>Tel: +372 5630 6354</p>
+        </div>
+        <div class='w-full md:w-[400px]'>
+          <iframe
+            src='https://maps.google.com/maps?q=M%C3%A4nniku%20tee%209%2C%20L%C3%B5unak%C3%BCla%2C%2074022&t=&z=13&ie=UTF8&iwloc=&output=embed'
+            width='100%'
+            height='200'
+            class='rounded-xl'
+            loading='lazy'></iframe>
+        </div>
+      </div>
+    </div>
+  </footer>
+      `
+    };
+
+
+    const routes = [
+      { path: '/', component: Home },
+      { path: '/uudised', component: Uudised },
+      { path: '/merch', component: Merch },
+      { path: '/rent', component: Rent },
+      { path: '/galerii', component: Galerii },
+      { path: '/kontakt', component: Kontakt },
+    ]
+
+    const router = VueRouter.createRouter({
+      history: VueRouter.createWebHashHistory(),
+      routes
+    })
+
+    const app = Vue.createApp({})
+    app.component('header-comp', HeaderComp)
+    app.component('footer-comp', FooterComp)
+    app.use(router)
+    app.mount('#app')
+  </script>
+  
+</body>
+
+</html>
