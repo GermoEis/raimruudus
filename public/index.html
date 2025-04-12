@@ -10,6 +10,7 @@
   <link rel="icon" type="image/x-icon" href="icon1.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <meta name="description" content="Räim Ruudus ametlik koduleht – uudised, üritused, jäätisemasina rent ja palju muud!">
 </head>
 <body class="bg-white text-gray-800">
   <div id="app" class="flex flex-col min-h-screen">
@@ -138,7 +139,15 @@
         <!-- Lisainfo -->
         <div>
           <label for="details" class="block font-semibold">Lisainfo:</label>
-          <textarea name="details" id="details" v-model="formData.details" class="w-full p-2 border rounded resize-none" :style="{ 'height': textareaHeight + 'px' }"></textarea>
+          <textarea 
+          name="details" 
+          id="details" 
+          v-model="formData.details" 
+          @input="handleTextareaInput"
+          class="w-full p-2 border rounded resize-none" 
+          :style="{ 'height': textareaHeight + 'px' }">
+        </textarea>
+
         </div>
 
         <!-- Submit button -->
@@ -181,7 +190,7 @@
       for (let h = startHour; h <= endHour; h++) {
         for (let m = 0; m < 60; m += 15) {
           const hh = String(h).padStart(2, '0');
-          const mm = String(m).padStart(2, '00');
+          const mm = String(m).padStart(2, '0');
           options.push(`${hh}:${mm}`);
         }
       }
@@ -350,24 +359,27 @@ const Kontakt = {
 
 
 const HeaderComp = {
-      template: `
-        <header class='bg-white shadow-md'>
-          <div class="max-w-screen-xl mx-auto px-6 py-4">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-              <router-link to='/'><img src='logo.jpg' alt='Logo' class='h-12' /></router-link>
-              <nav class='flex gap-6 text-lg flex-wrap justify-center'>
-                <router-link to='/'>Avaleht</router-link>
-                <router-link to='/uudised'>Uudised</router-link>
-                <router-link to='/merch'>Merch</router-link>
-                <router-link to='/rent'>Jäätisemasina rent</router-link>
-                <router-link to='/galerii'>Galerii</router-link>
-                <router-link to='/kontakt'>Kontakt</router-link>
-              </nav>
-            </div>
-          </div>
-        </header>
-      `
-    };
+  template: `
+    <header class='bg-white shadow-md'>
+      <div class="max-w-screen-xl mx-auto px-6 py-4">
+        <div class="flex justify-between items-center flex-wrap gap-4">
+          <router-link to='/'>
+            <img src='logo.jpg' alt='Logo' class='h-12' />
+          </router-link>
+          <nav class='flex gap-6 text-lg flex-wrap justify-center'>
+            <router-link to='/' >Avaleht</router-link>
+            <router-link to='/uudised'>Uudised</router-link>
+            <router-link to='/merch'>Merch</router-link>
+            <router-link to='/rent'>Jäätisemasina rent</router-link>
+            <router-link to='/galerii'>Galerii</router-link>
+            <router-link to='/kontakt'>Kontakt</router-link>
+          </nav>
+        </div>
+      </div>
+    </header>
+  `
+};
+
 
     const FooterComp = {
       template: `
